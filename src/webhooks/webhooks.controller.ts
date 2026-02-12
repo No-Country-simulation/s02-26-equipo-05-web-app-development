@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Headers, Req, BadRequestException } from '@nestjs/common'; // <-- Añadimos estos
 import { WebhooksService } from './webhooks.service';
 
 @Controller('webhooks')
@@ -6,10 +6,15 @@ export class WebhooksController {
   constructor(private readonly webhooksService: WebhooksService) {}
 
   @Post('stripe')
-  async handleStripe(@Body() payload: any) {
-    // ESTA ES TU TAREA: Guardar antes que nada
-    await this.webhooksService.createLog('stripe', payload);
+  async handleStripe(
+    @Headers('stripe-signature') sig: string,
+    @Req() req: any 
+  ) {
+    if (!sig) {
+      throw new BadRequestException('Falta la firma de Stripe');
+    }
     
-    return { received: true };
+    // IMPORTANTE: Pasamos req.rawBody para que Stripe pueda validar la firma
+    return await this.webhooksService.handleStripeWebhook(sig, req.rawBody);
   }
 }
