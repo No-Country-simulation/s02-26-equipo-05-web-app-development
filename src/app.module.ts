@@ -5,6 +5,7 @@ import * as Joi from 'joi';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LeadsModule } from './leads/leads.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { LeadsModule } from './leads/leads.module';
       inject: [ConfigService],
     }),
     LeadsModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
