@@ -10,6 +10,8 @@ import { WebhooksModule } from './webhooks/webhooks.module';
 import { PaymentsModule } from './payments/payments.module';
 import { EmailModule } from './email/email.module';
 
+
+import { PipedriveModule } from './pipedrive/pipedrive.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -41,8 +43,10 @@ import { EmailModule } from './email/email.module';
     WebhooksModule,
     PaymentsModule,
     EmailModule,
+    PipedriveModule,
   ],
   controllers: [AppController],
   providers: [AppService],
+  
 })
 export class AppModule { }
