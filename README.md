@@ -1,98 +1,111 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🚀 Simulation NC Backend (MVP)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend core para la plataforma "Simulation NC", encargado de la gestión de Leads, Pagos con Stripe, Órdenes y Webhooks.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🛠️ Tecnologías
+- **NestJS** (Framework)
+- **TypeORM** (ORM)
+- **PostgreSQL** (Base de Datos)
+- **Stripe API** (Pasarela de Pagos)
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## ⚡ Quick Start (Cómo Correr el Proyecto)
 
-## Project setup
+### 1. Prerrequisitos
+- Node.js (v18+)
+- Docker (opcional, para levantar Postgres)
+- Ngrok (para probar Webhooks localmente)
 
+### 2. Instalación
 ```bash
-$ npm install
+# Dentro de la carpeta backend/
+npm install
 ```
 
-## Compile and run the project
+### 3. Configuración de Entorno (.env) ⚠️ IMPORTANTE
+El servidor **no funcionará** sin este archivo. Debes crear un archivo llamado `.env` en la raíz de `backend/`.
 
+Puedes copiar el ejemplo incluido para empezar:
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+cp .env.example .env
 ```
+Luego, **edita el archivo `.env`** y añade tus claves reales:
+- `DATABASE_URL`: Conexión a tu Postgres.
+- `STRIPE_SECRET_KEY`: Tu clave privada de Stripe (`sk_test_...`).
+- `STRIPE_WEBHOOK_SECRET`: El secreto del webhook de Stripe (`whsec_...`).
 
-## Run tests
-
+### 4. Ejecutar el Servidor
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# Modo Desarrollo (con Hot Reload)
+npm run start:dev
 ```
+El servidor correrá en: `http://localhost:3000`
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### 5. Configurar Ngrok (Para Webhooks)
+En otra terminal, corre:
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+ngrok http 3000
 ```
+Copia la URL HTTPS que te da (ej. `https://tu-ngrok.ngrok-free.app`) y úsala en:
+1.  Tu Frontend (para hacer fetch a la API).
+2.  Tu Dashboard de Stripe (como endpoint de Webhook).
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## 🧩 Módulos Implementados (Status Actual)
 
-Check out a few resources that may come in handy when working with NestJS:
+### 1. 🏭 Leads (`/leads`)
+- **Objetivo**: Capturar datos de clientes potenciales antes del pago.
+- **Funcionalidad**: Guarda nombre, email, y timestamps básicos.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### 2. 💳 Payments (`/payments`)
+- **Endpoint**: `POST /api/v1/payments/create-intent`
+- **Funcionalidad**:
+    - Recibe el plan deseado (`starter`, `business_in_a_box`) y datos de la empresa.
+    - Calcula el precio total en el backend (Precio Plan + State Fee) para evitar fraudes.
+    - Crea un `PaymentIntent` en Stripe con metadata (Lead ID, Company Name, Entity Type).
+    - Retorna `clientSecret` para el frontend.
 
-## Support
+### 3. 📦 Orders (`/orders`)
+- **Objetivo**: Registrar la venta final confirmada.
+- **Funcionalidad**:
+    - Entidad `Order` con relación a `Lead`.
+    - Guarda status (`PENDING`, `PAID`, `FAILED`), monto, y número de orden único.
+    - Se crea **automáticamente** cuando el Webhook confirma el pago.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### 4. 🔔 Webhooks (`/webhooks/stripe`)
+- **Seguridad**: Valida la firma criptográfica de Stripe.
+- **Idempotencia**: Evita procesar el mismo evento dos veces.
+- **Lógica**: Escucha el evento `payment_intent.succeeded` y dispara la creación de la Orden en la Base de Datos.
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 🧪 Guía de Pruebas (Flow de Pago)
 
-## License
+1.  Asegúrate que el Backend y Ngrok estén corriendo.
+2.  Abre tu Frontend (Webflow o local).
+3.  Llena el formulario con datos de prueba.
+4.  Usa la **Tarjeta de Test** de Stripe:
+    - **Número**: `4242 4242 4242 4242`
+    - **Fecha**: Cualquier futuro (12/30)
+    - **CVC**: 123
+    - **Zip**: 12345
+5.  Al pagar:
+    - **Frontend**: Te redirigirá a la página de "Gracias".
+    - **Backend (Consola)**: Verás logs de "Pago exitoso detectado" y "Orden creada".
+    - **Base de Datos**: Se insertará una nueva fila en la tabla `orders` con status `PAID`.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+---
+
+## 📝 Comandos Útiles
+```bash
+# Crear nueva migración
+npm run migration:generate src/migrations/NombreCambio
+
+# Correr migraciones pendientes
+npm run migration:run
+
+# Revertir última migración
+npm run migration:revert
+```
