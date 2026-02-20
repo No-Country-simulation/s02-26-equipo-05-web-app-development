@@ -11,7 +11,7 @@ export class Lead {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ unique: true })
+  @Column({ nullable: true })
   email!: string;
 
   @Column()
