@@ -85,12 +85,12 @@ export class WebhooksService {
           this.logger.log(`✅ Orden creada exitosamente: ${order.id}`);
           break;
 
-        case 'payment_intent.payment_failed':
+        case 'payment_intent.payment_failed': {
           const args = event.data.object as Stripe.PaymentIntent;
           this.logger.warn(`❌ Pago fallido: ${event.id}`);
 
           // También registramos la orden fallida para tener historial
-          await this.ordersService.create({
+          const failedOrder = await this.ordersService.create({
             stripe_payment_intent_id: args.id,
             amount: args.amount,
             order_number: `ORD-FAILED-${Date.now()}`,
