@@ -101,7 +101,12 @@ export class WebhooksService {
             items: { plan_id: args.metadata.plan_id },
             status: OrderStatus.FAILED,
           });
+
+          if (failedOrder) {
+            this.logger.log(`⚠️ Registro de orden fallida guardado: ${failedOrder.id}`);
+          }
           break;
+        }
 
         default:
           this.logger.log(`Evento recibido: ${event.type}`);

@@ -8,7 +8,10 @@ import { LeadsModule } from './leads/leads.module';
 import { OrdersModule } from './orders/orders.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { PaymentsModule } from './payments/payments.module';
+import { EmailModule } from './email/email.module';
 
+
+import { PipedriveModule } from './pipedrive/pipedrive.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -19,6 +22,7 @@ import { PaymentsModule } from './payments/payments.module';
         STRIPE_SECRET_KEY: Joi.string().required(),
         STRIPE_WEBHOOK_SECRET: Joi.string().required(),
         PIPEDRIVE_API_TOKEN: Joi.string().required(),
+        RESEND_API_KEY: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRootAsync({
@@ -38,8 +42,11 @@ import { PaymentsModule } from './payments/payments.module';
     OrdersModule,
     WebhooksModule,
     PaymentsModule,
+    EmailModule,
+    PipedriveModule,
   ],
   controllers: [AppController],
   providers: [AppService],
+  
 })
 export class AppModule { }
