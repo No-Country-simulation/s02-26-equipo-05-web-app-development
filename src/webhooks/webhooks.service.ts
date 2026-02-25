@@ -16,6 +16,7 @@ export class WebhooksService {
     private readonly logRepository: Repository<WebhookLog>,
     private readonly ordersService: OrdersService,
   ) {
+    // Inicializamos Stripe. Asegúrate de tener STRIPE_SECRET_KEY en tu .env
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
       apiVersion: '2023-10-16' as any,
     });
@@ -24,6 +25,7 @@ export class WebhooksService {
   async handleStripeWebhook(signature: string, rawBody: Buffer) {
     let event: Stripe.Event;
 
+    // --- SEGURIDAD: Validación de Firma ---
     try {
       event = this.stripe.webhooks.constructEvent(
         rawBody,
@@ -35,6 +37,8 @@ export class WebhooksService {
       throw new BadRequestException(`Webhook Error: ${err.message}`);
     }
 
+    // --- ESCENARIO 1: IDEMPOTENCIA ---
+    // Usamos event_id que es tu columna con Unique Key
     const existingEvent = await this.logRepository.findOne({
       where: { event_id: event.id }
     });
@@ -44,26 +48,28 @@ export class WebhooksService {
       return { received: true };
     }
 
+    // --- GUARDADO DEL LOG (Tarea 1) ---
+    // Si no existía el log, lo creamos. Si existía pero no estaba procesado, lo usamos.
     let log = existingEvent;
     if (!log) {
       log = this.logRepository.create({
         event_id: event.id,
         event_type: event.type,
         source: 'stripe',
-        payload: event as any,
+        payload: event,
         processed: false,
       });
       await this.logRepository.save(log);
     }
 
+    // --- ESCENARIO 2 Y 3: LÓGICA DE NEGOCIO ---
     try {
       switch (event.type) {
-        case 'payment_intent.succeeded': {
+        case 'payment_intent.succeeded':
           const paymentIntent = event.data.object as Stripe.PaymentIntent;
           this.logger.log(`💰 Pago exitoso detectado: ${paymentIntent.id}`);
-          
+          // Crear la orden usando los datos del metadata
           const { metadata, amount } = paymentIntent;
-          
           const order = await this.ordersService.create({
             stripe_payment_intent_id: paymentIntent.id,
             amount: amount,
@@ -72,25 +78,19 @@ export class WebhooksService {
             company_name: metadata.company_name,
             entity_type: metadata.entity_type,
             registration_state: metadata.registration_state,
+
             items: { plan_id: metadata.plan_id },
             status: OrderStatus.PAID,
           });
-
-          // ✅ SOLUCIÓN AL ERROR TS18047:
-          // Solo intentamos acceder a order.id si 'order' no es null/undefined
-          if (order) {
-            this.logger.log(`✅ Orden creada exitosamente: ${order.id}`);
-          } else {
-            this.logger.error(`❌ El servicio de órdenes no devolvió una orden válida.`);
-          }
+          this.logger.log(`✅ Orden creada exitosamente: ${order.id}`);
           break;
-        }
 
-        case 'payment_intent.payment_failed': {
+        case 'payment_intent.payment_failed':
           const args = event.data.object as Stripe.PaymentIntent;
           this.logger.warn(`❌ Pago fallido: ${event.id}`);
 
-          const failedOrder = await this.ordersService.create({
+          // También registramos la orden fallida para tener historial
+          await this.ordersService.create({
             stripe_payment_intent_id: args.id,
             amount: args.amount,
             order_number: `ORD-FAILED-${Date.now()}`,
@@ -112,9 +112,11 @@ export class WebhooksService {
           this.logger.log(`Evento recibido: ${event.type}`);
       }
 
+      // Marcamos como procesado exitosamente en tu columna 'processed'
       await this.logRepository.update({ event_id: event.id }, { processed: true });
 
     } catch (error) {
+      // Si algo falla, usamos tu columna 'processing_error'
       await this.logRepository.update(
         { event_id: event.id },
         { processing_error: error.message }

@@ -4,41 +4,59 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 
-@Entity('leads') // Nombre de la tabla en la BD
+/**
+ * Entidad que representa un Lead
+ */
+@Entity({ name: 'leads' })
 export class Lead {
+  /** ID único del lead (UUID) */
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ nullable: true })
+  /** Email del lead (único) */
+  @Index({ unique: true })
+  @Column({ type: 'varchar', length: 150 })
   email!: string;
 
-  @Column()
+  /** Primer nombre del lead */
+  @Column({ type: 'varchar', length: 100 })
   first_name!: string;
 
-  @Column()
+  /** Apellido del lead */
+  @Column({ type: 'varchar', length: 100 })
   last_name!: string;
 
-  @Column({ nullable: true })
+  /** Teléfono del lead (opcional) */
+  @Column({ type: 'varchar', length: 30, nullable: true })
   phone?: string;
 
-  @Column({ nullable: true })
-  pipedrive_id?: string; // ID de la persona en Pipedrive CRM
+  /** ID de la persona en Pipedrive (opcional) */
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  pipedrive_id?: string;
 
-  // UTM Tracking Fields
-  @Column({ nullable: true })
+  /** Fuente UTM (opcional) */
+  @Index()
+  @Column({ type: 'varchar', length: 100, nullable: true })
   utm_source?: string;
 
-  @Column({ nullable: true })
+  /** Medio UTM (opcional) */
+  @Index()
+  @Column({ type: 'varchar', length: 100, nullable: true })
   utm_medium?: string;
 
-  @Column({ nullable: true })
+  /** Campaña UTM (opcional) */
+  @Index()
+  @Column({ type: 'varchar', length: 150, nullable: true })
   utm_campaign?: string;
 
-  @CreateDateColumn()
+  /** Fecha de creación */
+  @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;
 
-  @UpdateDateColumn()
+  /** Fecha de última actualización */
+  @UpdateDateColumn({ type: 'timestamptz' })
   updated_at!: Date;
 }
