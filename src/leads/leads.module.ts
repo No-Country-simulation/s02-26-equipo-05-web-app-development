@@ -22,7 +22,7 @@ import { PipedriveSyncService } from './service/pipedrive-sync.service';
     EventEmitterModule.forRoot({ global: true }),
   ],
   controllers: [LeadsController],
-  providers: [LeadsService, PipedriveSyncService],
+  providers: [LeadsService, PipedriveSyncService], 
   exports: [LeadsService],
 })
 export class LeadsModule {}

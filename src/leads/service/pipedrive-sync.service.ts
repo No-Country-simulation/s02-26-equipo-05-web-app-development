@@ -28,20 +28,32 @@ export class PipedriveSyncService {
   @OnEvent('lead.created', { async: true })
   @OnEvent('lead.updated', { async: true })
   async handleLeadEvents(payload: Lead) {
+    // 1. Validación de seguridad: Si no hay email o nombre, no intentamos sincronizar
+    if (!payload || !payload.email) {
+      this.logger.warn('Sincronización cancelada: El lead no tiene un email válido.');
+      return;
+    }
+
     try {
       const url = `https://api.pipedrive.com/v1/persons?api_token=${this.token}`;
 
       const body = {
-        name: `${payload.first_name} ${payload.last_name}`,
-        email: payload.email ? [{ value: payload.email, primary: true }] : [],
+        name: `${payload.first_name || 'Lead'} ${payload.last_name || 'Sin Apellido'}`.trim(),
+        email: [{ value: payload.email, primary: true }],
         phone: payload.phone ? [{ value: payload.phone, primary: true }] : [],
+        // Podés agregar una etiqueta para saber que viene de la Web App
+        visible_to: "3" 
       };
 
-      await axios.post(url, body, { timeout: 10000 });
+      const response = await axios.post(url, body, { timeout: 10000 });
 
-      this.logger.log(`Lead ${payload.email} sincronizado en Pipedrive`);
+      if (response.status === 201) {
+        this.logger.log(`✅ Lead ${payload.email} sincronizado correctamente en Pipedrive.`);
+      }
     } catch (err: any) {
-      this.logger.error('Error al sincronizar lead en Pipedrive', err?.message ?? err);
+      // 2. Log de error más detallado para debuguear rápido
+      const errorMsg = err.response?.data?.error || err.message;
+      this.logger.error(`❌ Error al sincronizar lead ${payload.email}: ${errorMsg}`);
     }
   }
 }
