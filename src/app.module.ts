@@ -9,9 +9,8 @@ import { OrdersModule } from './orders/orders.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { PaymentsModule } from './payments/payments.module';
 import { EmailModule } from './email/email.module';
-
-
 import { PipedriveModule } from './pipedrive/pipedrive.module';
+import { TrackingModule } from './tracking/tracking.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -23,6 +22,10 @@ import { PipedriveModule } from './pipedrive/pipedrive.module';
         STRIPE_WEBHOOK_SECRET: Joi.string().required(),
         PIPEDRIVE_API_TOKEN: Joi.string().required(),
         RESEND_API_KEY: Joi.string().required(),
+        META_PIXEL_ID: Joi.string().optional(),
+        META_ACCESS_TOKEN: Joi.string().optional(),
+        GA4_MEASUREMENT_ID: Joi.string().optional(),
+        GA4_API_SECRET: Joi.string().optional(),
       }),
     }),
     TypeOrmModule.forRootAsync({
@@ -44,6 +47,7 @@ import { PipedriveModule } from './pipedrive/pipedrive.module';
     PaymentsModule,
     EmailModule,
     PipedriveModule,
+    TrackingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
