@@ -83,4 +83,22 @@ export class CreateLeadDto {
   @IsString()
   @MaxLength(150)
   utm_campaign?: string;
+
+  /**
+   * Facebook Click ID para Conversions API.
+   */
+  @Transform(({ value }) => value?.trim())
+  @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  fbclid?: string;
+
+  /**
+   * Google Click ID para Offline Conversions.
+   */
+  @Transform(({ value }) => value?.trim())
+  @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  gclid?: string;
 }

@@ -52,6 +52,16 @@ export class Lead {
   @Column({ type: 'varchar', length: 150, nullable: true })
   utm_campaign?: string;
 
+  /** Facebook Click ID (opcional) */
+  @Index()
+  @Column({ type: 'varchar', length: 150, nullable: true })
+  fbclid?: string;
+
+  /** Google Click ID (opcional) */
+  @Index()
+  @Column({ type: 'varchar', length: 150, nullable: true })
+  gclid?: string;
+
   /** Fecha de creación */
   @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;

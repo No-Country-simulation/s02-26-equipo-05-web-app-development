@@ -12,7 +12,7 @@ export class LeadsService {
     @InjectRepository(Lead)
     private readonly leadRepository: Repository<Lead>,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   /**
    * Crea un nuevo Lead o actualiza uno existente según el email.
@@ -32,12 +32,15 @@ export class LeadsService {
       lead.utm_source = createLeadDto.utm_source ?? lead.utm_source;
       lead.utm_medium = createLeadDto.utm_medium ?? lead.utm_medium;
       lead.utm_campaign = createLeadDto.utm_campaign ?? lead.utm_campaign;
+      lead.fbclid = createLeadDto.fbclid ?? lead.fbclid;
+      lead.gclid = createLeadDto.gclid ?? lead.gclid;
 
       const updatedLead = await this.leadRepository.save(lead);
       this.eventEmitter.emit('lead.updated', updatedLead);
       return updatedLead;
     }
 
+    // Create new lead
     lead = this.leadRepository.create(createLeadDto);
     const savedLead = await this.leadRepository.save(lead);
     this.eventEmitter.emit('lead.created', savedLead);
