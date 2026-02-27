@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrdersService } from '../orders/orders.service';
+import { LeadsService } from '../leads/service/leads.service';
 import { WebhookLog } from './entities/webhook-log.entity';
 import { OrderStatus } from '../orders/entities/order.entity';
 import Stripe from 'stripe';
@@ -15,6 +16,7 @@ export class WebhooksService {
     @InjectRepository(WebhookLog)
     private readonly logRepository: Repository<WebhookLog>,
     private readonly ordersService: OrdersService,
+    private readonly leadsService: LeadsService,
   ) {
     // Inicializamos Stripe. Asegúrate de tener STRIPE_SECRET_KEY en tu .env
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
@@ -83,6 +85,23 @@ export class WebhooksService {
             status: OrderStatus.PAID,
           });
           this.logger.log(`✅ Orden creada exitosamente: ${order.id}`);
+
+          // --- TRIGGER SERVER SIDE TRACKING (CAPI) ---
+          if (metadata.lead_id) {
+            try {
+              const lead = await this.leadsService.findOne(metadata.lead_id);
+              if (lead) {
+                this.logger.log(`[🚀 Server-Side Tracking] Conversión interceptada en Backend.`);
+                this.logger.log(`[🦊 META CAPI] Preparando envío de Venta $${amount / 100} a FB. Email: ${lead.email}, FBCLID: ${lead.fbclid || 'NO_DISPONIBLE'}`);
+                this.logger.log(`[🎯 GA4 Measurement Protocol] Preparando envío a Analytics. GCLID: ${lead.gclid || 'NO_DISPONIBLE'}`);
+
+                // NOTA FUTURA PARA EL DESARROLLADOR: Aquí se invoca Axios hacia graph.facebook.com
+                // axios.post('https://graph.facebook.com/v20.0/.../events', { ... });
+              }
+            } catch (err) {
+              this.logger.error(`Error buscando Lead para SSR Tracker: ${err.message}`);
+            }
+          }
           break;
 
         case 'payment_intent.payment_failed': {
