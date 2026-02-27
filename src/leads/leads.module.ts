@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { EmailModule } from '../email/email.module'; //
 import { EventEmitterModule } from '@nestjs/event-emitter';
-
 import { LeadsService } from './service/leads.service';
 import { LeadsController } from './controller/leads.controller';
 import { Lead } from './entities/lead.entity';
@@ -18,7 +18,8 @@ import { PipedriveSyncService } from './service/pipedrive-sync.service';
  */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Lead]),
+    TypeOrmModule.forFeature([Lead]), 
+    EmailModule,
     EventEmitterModule.forRoot({ global: true }),
   ],
   controllers: [LeadsController],

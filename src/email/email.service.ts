@@ -17,4 +17,19 @@ export class EmailService {
       console.warn('No se pudo enviar el correo: La orden no tiene un lead con email válido.');
     }
   }
+
+  async sendWelcomeEmail(email: string, firstName: string): Promise<void> {
+    const subject = '¡Bienvenido a AllInOne!';
+    const html = `
+      <h1>Hola ${firstName},</h1>
+      <p>Bienvenido a <strong>AllinOne</strong>. Estamos felices de tenerte con nosotros.</p>
+      <p>Pronto nos pondremos en contacto contigo para darte más detalles.</p>
+    `;
+
+    if (email) {
+      await this.emailProvider.send(email, subject, html); //
+    } else {
+      console.warn('No se pudo enviar el correo de bienvenida: email no proporcionado.');
+    }
+  }
 }
