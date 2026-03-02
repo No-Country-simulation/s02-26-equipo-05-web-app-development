@@ -32,6 +32,9 @@ export class TrackingService {
     }
     if (clientIp) userData.client_ip_address = clientIp;
     if (clientUserAgent) userData.client_user_agent = clientUserAgent;
+    
+    // Meta Click ID
+    if (lead.fbclid) userData.fbc = `fb.1.${Math.floor(Date.now() / 1000)}.${lead.fbclid}`;
 
     await Promise.allSettled([
       this.sendMetaEvent('Lead', userData, {
@@ -47,6 +50,12 @@ export class TrackingService {
             params: {
               currency: 'USD',
               value: 0.00,
+              // UTMs y Click IDs para GA4
+              ...(lead.gclid && { gclid: lead.gclid }),
+              campaign_id: lead.utm_campaign,
+              source: lead.utm_source,
+              medium: lead.utm_medium,
+              campaign: lead.utm_campaign,
             },
           },
         ],
@@ -64,6 +73,9 @@ export class TrackingService {
     if (hashedPhone) userData.ph = [hashedPhone];
     if (clientIp) userData.client_ip_address = clientIp;
     if (clientUserAgent) userData.client_user_agent = clientUserAgent;
+
+    // Meta Click ID
+    if (lead?.fbclid) userData.fbc = `fb.1.${Math.floor(Date.now() / 1000)}.${lead.fbclid}`;
 
     const clientId = lead ? lead.id : 'unknown';
 
@@ -87,6 +99,12 @@ export class TrackingService {
               currency: 'USD',
               value: order.amount / 100,
               transaction_id: order.id,
+              // UTMs y Click IDs para GA4
+              ...(lead?.gclid && { gclid: lead.gclid }),
+              campaign_id: lead?.utm_campaign,
+              source: lead?.utm_source,
+              medium: lead?.utm_medium,
+              campaign: lead?.utm_campaign,
             },
           },
         ],
