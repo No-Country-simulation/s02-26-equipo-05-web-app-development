@@ -1,111 +1,58 @@
-# 🚀 Simulation NC Backend (MVP)
+# 🚀 All-in-One Solution: Backend (NestJS API)
 
-Backend core para la plataforma "Simulation NC", encargado de la gestión de Leads, Pagos con Stripe, Órdenes y Webhooks.
+¡Bienvenidos al repositorio oficial del Backend! Nuestra arquitectura está configurada para despliegues continuos, separación de entornos y alta disponibilidad.
 
-## 🛠️ Tecnologías
-- **NestJS** (Framework)
-- **TypeORM** (ORM)
-- **PostgreSQL** (Base de Datos)
-- **Stripe API** (Pasarela de Pagos)
+## 🌐 Entornos y Enlaces Rápidos
 
----
+- **Repo GitHub:** [s02-26-equipo-05-web-app-development](https://github.com/No-Country-simulation/s02-26-equipo-05-web-app-development)
+- **API en Producción:** [https://s02-26-equipo-05-web-app-developmen.vercel.app/](https://s02-26-equipo-05-web-app-developmen.vercel.app/)
 
-## ⚡ Quick Start (Cómo Correr el Proyecto)
+## 🚀 Infraestructura CI/CD (Despliegues Automáticos)
 
-### 1. Prerrequisitos
-- Node.js (v18+)
-- Docker (opcional, para levantar Postgres)
-- Ngrok (para probar Webhooks localmente)
+Hemos implementado **Despliegues Continuos con Vercel**. Esto significa que Vercel detecta automáticamente nuevos cambios en la rama `main`. 
 
-### 2. Instalación
+Cada vez que aprobemos una Pull Request (PR) y esta se fusione al `main`, Vercel interceptará el cambio y hará un redeploy automático de la API. Tendremos entornos 100% en vivo con la última versión del código en un par de minutos, de forma completamente invisible.
+
+## 💻 Desarrollo Local (Safe Mode)
+
+Para probar cosas libremente sin riesgo de tumbar o ensuciar el entorno de producción de Vercel/Supabase, debes correr este proyecto en local.
+
+### Instalación
+
 ```bash
-# Dentro de la carpeta backend/
+# 1. Instalar dependencias
 npm install
-```
 
-### 3. Configuración de Entorno (.env) ⚠️ IMPORTANTE
-El servidor **no funcionará** sin este archivo. Debes crear un archivo llamado `.env` en la raíz de `backend/`.
-
-Puedes copiar el ejemplo incluido para empezar:
-```bash
+# 2. Configurar variables de entorno (Crear archivo .env usando la plantilla)
 cp .env.example .env
 ```
-Luego, **edita el archivo `.env`** y añade tus claves reales:
-- `DATABASE_URL`: Conexión a tu Postgres.
-- `STRIPE_SECRET_KEY`: Tu clave privada de Stripe (`sk_test_...`).
-- `STRIPE_WEBHOOK_SECRET`: El secreto del webhook de Stripe (`whsec_...`).
 
-### 4. Ejecutar el Servidor
+### Ejecución
+
 ```bash
-# Modo Desarrollo (con Hot Reload)
+# Iniciar el servidor de desarrollo (Hot-Reload)
 npm run start:dev
+
+# El servidor escuchará en:
+# http://localhost:3000
 ```
-El servidor correrá en: `http://localhost:3000`
 
-### 5. Configurar Ngrok (Para Webhooks)
-En otra terminal, corre:
-```bash
-ngrok http 3000
-```
-Copia la URL HTTPS que te da (ej. `https://tu-ngrok.ngrok-free.app`) y úsala en:
-1.  Tu Frontend (para hacer fetch a la API).
-2.  Tu Dashboard de Stripe (como endpoint de Webhook).
+> **Nota para el equipo de Frontend**: Mientras usen `npm run start` (o `ng serve`) en su aplicación Angular, el frontend usará automáticamente su archivo `environment.development.ts`, el cual ya está configurado para apuntar a esta API local (`http://localhost:3000`).
 
+## 📊 Accesos a Paneles de Control (Admin)
+
+Todo el equipo tiene acceso maestro para ver logs del servidor, el historial de despliegues en Vercel y leer la información cruda de los leads en la base de datos PostgreSQL.
+
+### 1. Panel de Servidores (Vercel)
+Para monitorear los despliegues de **Producción** (Tanto de la API como del Frontend):
+1. Entra a [Vercel.com](https://vercel.com/)
+2. Loguéate usando el botón "Continue with Google".
+3. Usa la cuenta oficial del proyecto
+4. En el Dashboard ("Projects") verás los dos despliegues activos.
+
+### 2. Base de Datos PostgreSQL (Supabase)
+Para ver los registros en vivo del backend (Leads, Órdenes, Webhooks):
+1. Entra a [Supabase.com](https://supabase.com/) y presiona Log In.
+2. Utiliza las credenciales que el equipo te dio
 ---
-
-## 🧩 Módulos Implementados (Status Actual)
-
-### 1. 🏭 Leads (`/leads`)
-- **Objetivo**: Capturar datos de clientes potenciales antes del pago.
-- **Funcionalidad**: Guarda nombre, email, y timestamps básicos.
-
-### 2. 💳 Payments (`/payments`)
-- **Endpoint**: `POST /api/v1/payments/create-intent`
-- **Funcionalidad**:
-    - Recibe el plan deseado (`starter`, `business_in_a_box`) y datos de la empresa.
-    - Calcula el precio total en el backend (Precio Plan + State Fee) para evitar fraudes.
-    - Crea un `PaymentIntent` en Stripe con metadata (Lead ID, Company Name, Entity Type).
-    - Retorna `clientSecret` para el frontend.
-
-### 3. 📦 Orders (`/orders`)
-- **Objetivo**: Registrar la venta final confirmada.
-- **Funcionalidad**:
-    - Entidad `Order` con relación a `Lead`.
-    - Guarda status (`PENDING`, `PAID`, `FAILED`), monto, y número de orden único.
-    - Se crea **automáticamente** cuando el Webhook confirma el pago.
-
-### 4. 🔔 Webhooks (`/webhooks/stripe`)
-- **Seguridad**: Valida la firma criptográfica de Stripe.
-- **Idempotencia**: Evita procesar el mismo evento dos veces.
-- **Lógica**: Escucha el evento `payment_intent.succeeded` y dispara la creación de la Orden en la Base de Datos.
-
----
-
-## 🧪 Guía de Pruebas (Flow de Pago)
-
-1.  Asegúrate que el Backend y Ngrok estén corriendo.
-2.  Abre tu Frontend (Webflow o local).
-3.  Llena el formulario con datos de prueba.
-4.  Usa la **Tarjeta de Test** de Stripe:
-    - **Número**: `4242 4242 4242 4242`
-    - **Fecha**: Cualquier futuro (12/30)
-    - **CVC**: 123
-    - **Zip**: 12345
-5.  Al pagar:
-    - **Frontend**: Te redirigirá a la página de "Gracias".
-    - **Backend (Consola)**: Verás logs de "Pago exitoso detectado" y "Orden creada".
-    - **Base de Datos**: Se insertará una nueva fila en la tabla `orders` con status `PAID`.
-
----
-
-## 📝 Comandos Útiles
-```bash
-# Crear nueva migración
-npm run migration:generate src/migrations/NombreCambio
-
-# Correr migraciones pendientes
-npm run migration:run
-
-# Revertir última migración
-npm run migration:revert
-```
+*¡Asegúrense de hacer un `git pull` de la rama principal antes de empezar a programar y sigamos construyendo!*
