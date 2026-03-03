@@ -5,12 +5,14 @@ import { WebhooksService } from './webhooks.service';
 import { WebhooksController } from './webhooks.controller';
 import { OrdersModule } from '../orders/orders.module';
 import { LeadsModule } from '../leads/leads.module';
+import { PipedriveModule } from '../pipedrive/pipedrive.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([WebhookLog]),
     OrdersModule,
     LeadsModule,
+    PipedriveModule,
   ],
   controllers: [WebhooksController],
   providers: [WebhooksService],

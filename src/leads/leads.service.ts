@@ -5,6 +5,7 @@ import { Lead } from './entities/lead.entity'; //
 import { CreateLeadDto } from './dto/create-lead.dto'; //
 import { UpdateLeadDto } from './dto/update-lead.dto'; //
 import { EmailService } from '../email/email.service'; //
+import { TrackingService } from '../tracking/tracking.service'; //
 
 @Injectable()
 export class LeadsService {
@@ -12,7 +13,8 @@ export class LeadsService {
     @InjectRepository(Lead)
     private readonly leadsRepository: Repository<Lead>,
     private readonly emailService: EmailService, //
-  ) {}
+    private readonly trackingService: TrackingService, //
+  ) { }
 
   async create(createLeadDto: CreateLeadDto) {
     try {
@@ -25,6 +27,12 @@ export class LeadsService {
 
       // 3. Enviar correo de bienvenida
       await this.emailService.sendWelcomeEmail(savedLead.email, savedLead.first_name);
+
+      // 4. Track Lead en GA4 y Meta
+      await this.trackingService.trackLead(savedLead).catch(e => {
+        // Ignoramos errores de tracking para no fallar la creación del lead
+        console.error('Error tracking lead:', e.message);
+      });
 
       return savedLead;
     } catch (error) {

@@ -5,6 +5,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Lead } from '../entities/lead.entity';
 import { CreateLeadDto } from '../dto/create-lead.dto';
 import { UpdateLeadDto } from '../dto/update-lead.dto';
+import { TrackingService } from '../../tracking/tracking.service';
 
 @Injectable()
 export class LeadsService {
@@ -12,6 +13,7 @@ export class LeadsService {
     @InjectRepository(Lead)
     private readonly leadRepository: Repository<Lead>,
     private readonly eventEmitter: EventEmitter2,
+    private readonly trackingService: TrackingService,
   ) { }
 
   /**
@@ -43,7 +45,15 @@ export class LeadsService {
     // Create new lead
     lead = this.leadRepository.create(createLeadDto);
     const savedLead = await this.leadRepository.save(lead);
+
+    // Emit event for Pipedrive sync
     this.eventEmitter.emit('lead.created', savedLead);
+
+    // Server Side Tracking for Meta and GA4
+    await this.trackingService.trackLead(savedLead).catch(e => {
+      console.error('Error tracking lead:', e.message);
+    });
+
     return savedLead;
   }
 

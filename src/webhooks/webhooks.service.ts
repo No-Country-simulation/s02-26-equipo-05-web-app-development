@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrdersService } from '../orders/orders.service';
 import { LeadsService } from '../leads/service/leads.service';
+import { TrackingService } from '../tracking/tracking.service';
+import { PipedriveService } from '../pipedrive/pipedrive.service';
 import { WebhookLog } from './entities/webhook-log.entity';
 import { OrderStatus } from '../orders/entities/order.entity';
 import Stripe from 'stripe';
@@ -17,6 +19,8 @@ export class WebhooksService {
     private readonly logRepository: Repository<WebhookLog>,
     private readonly ordersService: OrdersService,
     private readonly leadsService: LeadsService,
+    private readonly trackingService: TrackingService,
+    private readonly pipedriveService: PipedriveService,
   ) {
     // Inicializamos Stripe. Asegúrate de tener STRIPE_SECRET_KEY en tu .env
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
@@ -91,12 +95,23 @@ export class WebhooksService {
             try {
               const lead = await this.leadsService.findOne(metadata.lead_id);
               if (lead) {
-                this.logger.log(`[🚀 Server-Side Tracking] Conversión interceptada en Backend.`);
-                this.logger.log(`[🦊 META CAPI] Preparando envío de Venta $${amount / 100} a FB. Email: ${lead.email}, FBCLID: ${lead.fbclid || 'NO_DISPONIBLE'}`);
-                this.logger.log(`[🎯 GA4 Measurement Protocol] Preparando envío a Analytics. GCLID: ${lead.gclid || 'NO_DISPONIBLE'}`);
+                this.logger.log(`[🚀 Server-Side Tracking] Conversión interceptada en Backend para lead ${lead.email}`);
 
-                // NOTA FUTURA PARA EL DESARROLLADOR: Aquí se invoca Axios hacia graph.facebook.com
-                // axios.post('https://graph.facebook.com/v20.0/.../events', { ... });
+                // Inject the full lead object into the order for tracking purposes
+                order.lead = lead;
+
+                // Fire both Meta CAPI and GA4 events via TrackingService
+                await this.trackingService.trackPurchase(order).catch(e => {
+                  this.logger.error(`Failed to send tracking events for purchase: ${e.message}`);
+                });
+
+                // --- TRIGGER PIPEDRIVE DEAL CREATION ---
+                try {
+                  const personId = await this.pipedriveService.createPerson(lead);
+                  await this.pipedriveService.createDeal(order, personId);
+                } catch (e) {
+                  this.logger.error(`Failed to create Pipedrive Deal for order ${order.id}: ${e.message}`);
+                }
               }
             } catch (err) {
               this.logger.error(`Error buscando Lead para SSR Tracker: ${err.message}`);
