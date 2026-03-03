@@ -6,6 +6,7 @@ import { Lead } from '../entities/lead.entity';
 import { CreateLeadDto } from '../dto/create-lead.dto';
 import { UpdateLeadDto } from '../dto/update-lead.dto';
 import { TrackingService } from '../../tracking/tracking.service';
+import { EmailService } from '../../email/email.service';
 
 @Injectable()
 export class LeadsService {
@@ -14,6 +15,7 @@ export class LeadsService {
     private readonly leadRepository: Repository<Lead>,
     private readonly eventEmitter: EventEmitter2,
     private readonly trackingService: TrackingService,
+    private readonly emailService: EmailService,
   ) { }
 
   /**
@@ -48,6 +50,13 @@ export class LeadsService {
 
     // Emit event for Pipedrive sync
     this.eventEmitter.emit('lead.created', savedLead);
+
+    // Mandar el correo de Bienvenida
+    try {
+      await this.emailService.sendWelcomeEmail(savedLead.email, savedLead.first_name);
+    } catch (e) {
+      console.error('Error enviando correo de bienvenida:', e.message);
+    }
 
     // Server Side Tracking for Meta and GA4
     await this.trackingService.trackLead(savedLead).catch(e => {
