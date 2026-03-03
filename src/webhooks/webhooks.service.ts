@@ -5,6 +5,7 @@ import { OrdersService } from '../orders/orders.service';
 import { LeadsService } from '../leads/service/leads.service';
 import { TrackingService } from '../tracking/tracking.service';
 import { PipedriveService } from '../pipedrive/pipedrive.service';
+import { EmailService } from '../email/email.service';
 import { WebhookLog } from './entities/webhook-log.entity';
 import { OrderStatus } from '../orders/entities/order.entity';
 import Stripe from 'stripe';
@@ -21,6 +22,7 @@ export class WebhooksService {
     private readonly leadsService: LeadsService,
     private readonly trackingService: TrackingService,
     private readonly pipedriveService: PipedriveService,
+    private readonly emailService: EmailService,
   ) {
     // Inicializamos Stripe. Asegúrate de tener STRIPE_SECRET_KEY en tu .env
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
@@ -111,6 +113,14 @@ export class WebhooksService {
                   await this.pipedriveService.createDeal(order, personId);
                 } catch (e) {
                   this.logger.error(`Failed to create Pipedrive Deal for order ${order.id}: ${e.message}`);
+                }
+
+                // --- ENVIAR CORREO DE CONFIRMACIÓN OBLIGATORIO ---
+                try {
+                  await this.emailService.sendOrderConfirmation(order);
+                  this.logger.log(`📧 Correo de confirmación enviado exitosamente (o encolado en Resend) para la orden ${order.id}`);
+                } catch (e) {
+                  this.logger.error(`Falló el envío del recibo de compra para la orden ${order.id}: ${e.message}`);
                 }
               }
             } catch (err) {

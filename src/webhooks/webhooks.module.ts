@@ -6,6 +6,7 @@ import { WebhooksController } from './webhooks.controller';
 import { OrdersModule } from '../orders/orders.module';
 import { LeadsModule } from '../leads/leads.module';
 import { PipedriveModule } from '../pipedrive/pipedrive.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { PipedriveModule } from '../pipedrive/pipedrive.module';
     OrdersModule,
     LeadsModule,
     PipedriveModule,
+    EmailModule,
   ],
   controllers: [WebhooksController],
   providers: [WebhooksService],
